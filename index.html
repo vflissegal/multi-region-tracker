@@ -214,6 +214,19 @@
         }
         .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
         .upload-btn svg { width: 16px; height: 16px; }
+        .upload-wrapper { position: relative; }
+        .upload-tooltip {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0; z-index: 1000;
+            width: 320px; padding: 0.9rem 1rem; border-radius: 10px;
+            background: var(--surface); border: 1px solid var(--border);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12); font-size: 0.78rem; color: var(--text);
+            line-height: 1.5;
+        }
+        .upload-wrapper:hover .upload-tooltip { display: block; }
+        .upload-tooltip h4 { margin: 0 0 0.4rem; font-size: 0.82rem; color: var(--accent); }
+        .upload-tooltip ol { margin: 0.4rem 0; padding-left: 1.2rem; }
+        .upload-tooltip li { margin-bottom: 0.3rem; }
+        .upload-tooltip code { background: var(--surface-2); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.72rem; }
         #tsvFileInput { display: none; }
 
         /* Notification bell */
@@ -280,10 +293,21 @@
             <span class="last-updated" id="lastUpdated"></span>
         </div>
         <div class="header-right">
-            <label class="upload-btn" for="tsvFileInput">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Upload TSV
-            </label>
+            <div class="upload-wrapper">
+                <label class="upload-btn" for="tsvFileInput">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload TSV
+                </label>
+                <div class="upload-tooltip">
+                    <h4>How to update task data</h4>
+                    <ol>
+                        <li>Open your <strong>GitHub Project</strong> board</li>
+                        <li>Click <code>⋯</code> menu → <strong>Export</strong> → <strong>Download as TSV</strong></li>
+                        <li>Click this button and select the downloaded <code>.tsv</code> file</li>
+                    </ol>
+                    <p style="margin:0.4rem 0 0;color:var(--text-muted)">The tracker will match tasks by title and update statuses, dates, and assignees automatically.</p>
+                </div>
+            </div>
             <input type="file" id="tsvFileInput" accept=".tsv,.csv,.txt">
             <div class="notif-wrapper">
                 <button class="notif-btn" id="notifBtn">
