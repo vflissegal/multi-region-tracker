@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tomorrow.io - Multi-Region Expansion Tracker</title>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --surface-2: #f0f2f5;
+            --border: #e2e6ed;
+            --text: #1a2033;
+            --text-muted: #6b7489;
+            --accent: #4f46e5;
+            --green: #16a34a;
+            --green-light: #dcfce7;
+            --yellow: #ca8a04;
+            --yellow-light: #fef9c3;
+            --red: #dc2626;
+            --red-light: #fee2e2;
+            --blue: #2563eb;
+            --blue-bg: rgba(37,99,235,0.08);
+            --orange: #ea580c;
+            --orange-bg: rgba(234,88,12,0.08);
+            --wat-color: #4f46e5;
+            --wat-bg: rgba(79,70,229,0.06);
+            --hpc-color: #ea580c;
+            --hpc-bg: rgba(234,88,12,0.06);
+            --ml-color: #16a34a;
+            --ml-bg: rgba(22,163,74,0.06);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.2rem; color: #fff;
+        }
+        .header h1 { font-size: 1.3rem; font-weight: 700; }
+        .header h1 span { color: var(--text-muted); font-weight: 400; font-size: 0.9rem; margin-left: 0.5rem; }
+        .header-right { display: flex; align-items: center; gap: 1.5rem; }
+        .completion-badge {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: var(--blue-bg); padding: 0.5rem 1rem; border-radius: 8px;
+            font-weight: 600; color: var(--blue); font-size: 0.85rem;
+        }
+        .last-updated { color: var(--text-muted); font-size: 0.8rem; }
+        .container { max-width: 1440px; margin: 0 auto; padding: 2rem; }
+
+        .completion-banner {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+            padding: 1.75rem 2rem; margin-bottom: 2rem;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .completion-item { text-align: center; padding: 1rem; border-radius: 10px; }
+        .completion-item.wat { background: var(--wat-bg); }
+        .completion-item.hpc { background: var(--hpc-bg); }
+        .completion-item.ml { background: var(--ml-bg); }
+        .completion-item-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600; }
+        .completion-item-date { font-size: 1.6rem; font-weight: 800; }
+        .completion-item.wat .completion-item-date { color: var(--wat-color); }
+        .completion-item.hpc .completion-item-date { color: var(--hpc-color); }
+        .completion-item.ml .completion-item-date { color: var(--ml-color); }
+        .completion-item-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .kpi-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 1.25rem; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 12px 12px 0 0; }
+        .kpi-card.total::before { background: var(--accent); }
+        .kpi-card.done::before { background: var(--green); }
+        .kpi-card.progress::before { background: var(--yellow); }
+        .kpi-card.blocked::before { background: var(--red); }
+        .kpi-card.hours::before { background: var(--blue); }
+        .kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; font-weight: 600; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; }
+        .kpi-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+        .section { margin-bottom: 2.5rem; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+        .assumptions-box {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .assumptions-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .assumptions-list { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; font-size: 0.82rem; color: var(--text-muted); }
+
+        .gantt-container {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+            padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            overflow-x: auto;
+        }
+        .gantt-meta { display: flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+        .gantt-meta strong { color: var(--text); }
+        .gantt-months-row { display: flex; padding-left: 220px; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; padding-bottom: 0.4rem; position: relative; }
+        .gantt-month-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600; position: absolute; }
+        .gantt-body { position: relative; }
+        .gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--red); z-index: 2; opacity: 0.6; }
+        .gantt-today-label { position: absolute; top: -16px; transform: translateX(-50%); font-size: 0.65rem; color: var(--red); font-weight: 700; }
+        .gantt-row { display: flex; align-items: center; margin-bottom: 3px; height: 28px; }
+        .gantt-row-label { width: 220px; min-width: 220px; font-size: 0.78rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 0.75rem; }
+        .gantt-row-bars { flex: 1; position: relative; height: 100%; display: flex; align-items: center; }
+        .gantt-bar {
+            position: absolute; height: 20px; border-radius: 4px;
+            display: flex; align-items: center; padding: 0 6px;
+            font-size: 0.67rem; font-weight: 600; color: #fff; cursor: pointer;
+        }
+        .gantt-bar:hover { filter: brightness(1.1); }
+        .gantt-legend { display: flex; gap: 1.25rem; margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted); }
+        .gantt-legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .gantt-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+        /* Task Popup Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3); z-index: 200; align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: var(--surface); border-radius: 14px; padding: 2rem;
+            max-width: 480px; width: 90%; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 1rem; right: 1rem; background: none; border: none;
+            font-size: 1.4rem; cursor: pointer; color: var(--text-muted); line-height: 1;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-badge { margin-bottom: 0.75rem; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; line-height: 1.4; }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .modal-field { }
+        .modal-field-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.25rem; }
+        .modal-field-value { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+        .modal-field-value.highlight { color: var(--accent); font-size: 1rem; }
+        .modal-divider { grid-column: span 2; height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .modal-url { margin-top: 1.25rem; }
+        .modal-url a {
+            font-size: 0.8rem; color: var(--accent); text-decoration: none; font-weight: 500;
+        }
+        .modal-url a:hover { text-decoration: underline; }
+
+        .table-controls { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 0.4rem 0.85rem; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-muted); font-size: 0.8rem;
+            cursor: pointer; transition: all 0.2s; font-weight: 500;
+        }
+        .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .filter-btn.wat.active { background: var(--wat-color); border-color: var(--wat-color); }
+        .filter-btn.hpc.active { background: var(--hpc-color); border-color: var(--hpc-color); }
+        .filter-btn.ml.active { background: var(--ml-color); border-color: var(--ml-color); }
+
+        .task-table-wrapper {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .task-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        .task-table th {
+            text-align: left; padding: 0.85rem 1rem; font-size: 0.72rem;
+            text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);
+            background: var(--surface-2); border-bottom: 1px solid var(--border);
+            cursor: pointer; font-weight: 700;
+        }
+        .task-table th:hover { color: var(--text); }
+        .task-table td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .task-table tr:last-child td { border-bottom: none; }
+        .task-table tr:hover td { background: var(--surface-2); }
+
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+        .badge-wat { background: rgba(79,70,229,0.1); color: var(--wat-color); }
+        .badge-hpc { background: var(--orange-bg); color: var(--orange); }
+        .badge-ml { background: rgba(22,163,74,0.08); color: var(--green); }
+
+        .status-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.73rem; font-weight: 600; }
+        .status-chip.not-started { background: var(--surface-2); color: var(--text-muted); }
+        .status-chip.in-progress { background: var(--yellow-light); color: var(--yellow); }
+        .status-chip.done { background: var(--green-light); color: var(--green); }
+        .status-chip.blocked { background: var(--red-light); color: var(--red); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        /* Upload button */
+        .upload-btn {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text); font-size: 0.82rem;
+            cursor: pointer; font-weight: 500; transition: all 0.2s;
+        }
+        .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .upload-btn svg { width: 16px; height: 16px; }
+        #tsvFileInput { display: none; }
+
+        /* Notification bell */
+        .notif-wrapper { position: relative; }
+        .notif-btn {
+            position: relative; background: none; border: none; cursor: pointer;
+            padding: 0.5rem; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .notif-btn:hover { background: var(--surface-2); }
+        .notif-btn svg { width: 20px; height: 20px; fill: var(--text-muted); }
+        .notif-badge {
+            position: absolute; top: 4px; right: 4px;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: var(--red); color: #fff; font-size: 0.6rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .notif-badge.hidden { display: none; }
+        .notif-dropdown {
+            position: absolute; top: 100%; right: 0; margin-top: 0.5rem;
+            width: 360px; max-height: 420px; overflow-y: auto;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            z-index: 100; display: none;
+        }
+        .notif-dropdown.open { display: block; }
+        .notif-header {
+            padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .notif-header h3 { font-size: 0.9rem; font-weight: 700; }
+        .notif-clear {
+            font-size: 0.75rem; color: var(--accent); cursor: pointer;
+            background: none; border: none; font-weight: 600;
+        }
+        .notif-clear:hover { text-decoration: underline; }
+        .notif-list { padding: 0.5rem 0; }
+        .notif-item {
+            padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
+            font-size: 0.8rem; line-height: 1.4;
+        }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-item-title { font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
+        .notif-item-detail { color: var(--text-muted); }
+        .notif-item-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .notif-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        .notif-item .change-new { color: var(--green); font-weight: 600; }
+        .notif-item .change-status { color: var(--blue); font-weight: 600; }
+        .notif-item .change-hours { color: var(--orange); font-weight: 600; }
+
+        @media (max-width: 900px) {
+            .container { padding: 1rem; }
+            .completion-banner { grid-template-columns: 1fr; }
+            .gantt-row-label { width: 140px; min-width: 140px; }
+            .notif-dropdown { width: 300px; right: -1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">T</div>
+            <h1>Multi-Region Expansion <span>Tomorrow.io</span></h1>
+        </div>
+        <div class="header-right">
+            <label class="upload-btn" for="tsvFileInput">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload TSV
+            </label>
+            <input type="file" id="tsvFileInput" accept=".tsv,.csv,.txt">
+            <div class="notif-wrapper">
+                <button class="notif-btn" id="notifBtn">
+                    <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="notif-badge hidden" id="notifBadge">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <h3>Changes</h3>
+                        <button class="notif-clear" id="notifClear">Clear all</button>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty">No changes detected yet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="completion-badge" id="overallBadge"></div>
+            <div class="last-updated">Updated: <span id="lastUpdated"></span></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="completion-banner" id="completionBanner"></div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="assumptions-box" id="assumptionsBox"></div>
+        <div class="section">
+            <div class="section-title">WAT - Web App Tier Timeline</div>
+            <div class="gantt-container" id="ganttWAT"></div>
+        </div>
+        <div class="section">
+            <div class="section-title">HPC - High-Performance Compute Timeline</div>
+            <div class="gantt-container" id="ganttHPC"></div>
+        </div>
+        <div class="section">
+            <div class="section-title">ML - Machine Learning Timeline</div>
+            <div class="gantt-container" id="ganttML"></div>
+        </div>
+        <div class="section">
+            <div class="section-title">All Tasks</div>
+            <div class="table-controls" id="tableControls"></div>
+            <div class="task-table-wrapper">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="field">Stream</th>
+                            <th data-sort="title">Task</th>
+                            <th data-sort="assignee">Assignee</th>
+                            <th data-sort="status">Status</th>
+                            <th data-sort="hours">Est. Hours</th>
+                            <th>Projected Start</th>
+                            <th>Projected End</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal-card">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-badge" id="modalBadge"></div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-grid" id="modalGrid"></div>
+            <div class="modal-url" id="modalUrl"></div>
+        </div>
+    </div>
+
+<script>
+var PROJECT_DATA = {
+    lastUpdated: "2026-06-08",
+    assumptions: {
+        projectStart: "2026-06-15",
+        hoursPerWeek: {
+            zakarel: 40,
+            elinoye: 40,
+            adamschnaider: 0,
+            mohammadzaid308: 0
+        },
+        elinoyeSplit: { HPC: 0.7, ML: 0.3 }
+    },
+    tasks: [
+        { id: "WAT-0", title: "Architecture finalized", assignee: "zakarel", status: "Done", field: "WAT", hours: 16, phase: 0, milestone: true, url: "https://github.com/zakarel/t.io-priv/issues/4" },
+        { id: "WAT-1", title: "Secondary landing zone and networking", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 60, phase: 1, url: "https://github.com/zakarel/t.io-priv/issues/8" },
+        { id: "WAT-2", title: "Identity, Roles and Keys", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 32, phase: 2, url: "https://github.com/zakarel/t.io-priv/issues/9" },
+        { id: "WAT-3", title: "Secondary AKS cluster", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 60, phase: 3, url: "https://github.com/zakarel/t.io-priv/issues/10" },
+        { id: "WAT-4", title: "ACR geo-replication", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 16, phase: 4, url: "https://github.com/zakarel/t.io-priv/issues/12" },
+        { id: "WAT-5", title: "Secondary storage and data plane", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 56, phase: 5, url: "https://github.com/zakarel/t.io-priv/issues/13" },
+        { id: "WAT-6", title: "Bucket to consumer event path", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 64, phase: 6, url: "https://github.com/zakarel/t.io-priv/issues/14" },
+        { id: "WAT-7", title: "Cross-cloud connectivity", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 40, phase: 7, url: "https://github.com/zakarel/t.io-priv/issues/15" },
+        { id: "WAT-8", title: "Observability for secondary", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 48, phase: 8, url: "https://github.com/zakarel/t.io-priv/issues/16" },
+        { id: "WAT-9", title: "CI/CD changes", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 56, phase: 9, url: "https://github.com/zakarel/t.io-priv/issues/17" },
+        { id: "WAT-10", title: "DR posture and runbooks", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 104, phase: 10, url: "https://github.com/zakarel/t.io-priv/issues/18" },
+        { id: "WAT-11", title: "Validation and cutover", assignee: "zakarel", status: "Not Started", field: "WAT", hours: 88, phase: 11, milestone: true, url: "https://github.com/zakarel/t.io-priv/issues/19" },
+        { id: "HPC-0", title: "Architecture finalized", assignee: "adamschnaider", status: "Done", field: "HPC", hours: 16, group: "Foundation", milestone: true, url: "https://github.com/zakarel/t.io-priv/issues/5" },
+        { id: "HPC-0b", title: "NetApp Files Issue", assignee: "adamschnaider", status: "Done", field: "HPC", hours: 8, group: "Foundation", url: "https://github.com/zakarel/t.io-priv/issues/7" },
+        { id: "HPC-1", title: "Terraform multi-region IaC", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 32, group: "IaC", url: "https://github.com/zakarel/t.io-priv/issues/20" },
+        { id: "HPC-2", title: "HNS on storage accounts", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 16, group: "IaC", url: "https://github.com/zakarel/t.io-priv/issues/21" },
+        { id: "HPC-3", title: "Lustre auto-export/import", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 16, group: "IaC", url: "https://github.com/zakarel/t.io-priv/issues/22" },
+        { id: "HPC-4", title: "Image replication (Compute Gallery)", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 12, group: "IaC", url: "https://github.com/zakarel/t.io-priv/issues/23" },
+        { id: "HPC-5", title: "Tagging and cost management", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 8, group: "IaC", url: "https://github.com/zakarel/t.io-priv/issues/24" },
+        { id: "HPC-6", title: "IPAM / prevent CIDR overlap", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 8, group: "Networking", url: "https://github.com/zakarel/t.io-priv/issues/25" },
+        { id: "HPC-7", title: "Peering via AVNM", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 16, group: "Networking", url: "https://github.com/zakarel/t.io-priv/issues/26" },
+        { id: "HPC-8", title: "Firewall for secondary", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 16, group: "Networking", url: "https://github.com/zakarel/t.io-priv/issues/27" },
+        { id: "HPC-9", title: "Private DNS in secondary", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 8, group: "Networking", url: "https://github.com/zakarel/t.io-priv/issues/28" },
+        { id: "HPC-10", title: "Slurm partition for secondary", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 12, group: "Compute", url: "https://github.com/zakarel/t.io-priv/issues/29" },
+        { id: "HPC-11", title: "Quota and capacity planning", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 8, group: "Compute", url: "https://github.com/zakarel/t.io-priv/issues/30" },
+        { id: "HPC-12", title: "Cross-region data access", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 12, group: "Compute", url: "https://github.com/zakarel/t.io-priv/issues/31" },
+        { id: "HPC-13", title: "Monitoring and alerting", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 16, group: "Observability", url: "https://github.com/zakarel/t.io-priv/issues/32" },
+        { id: "HPC-14", title: "CI/CD for both regions", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 24, group: "CI/CD", url: "https://github.com/zakarel/t.io-priv/issues/33" },
+        { id: "HPC-15", title: "E2E provisioning test", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 24, group: "CI/CD", url: "https://github.com/zakarel/t.io-priv/issues/34" },
+        { id: "HPC-16", title: "Activation design", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 16, group: "Activation", url: "https://github.com/zakarel/t.io-priv/issues/35" },
+        { id: "HPC-17", title: "Automated activation orchestration", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 32, group: "Activation", url: "https://github.com/zakarel/t.io-priv/issues/36" },
+        { id: "HPC-18", title: "Periodic DR drill", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 24, group: "Activation", url: "https://github.com/zakarel/t.io-priv/issues/37" },
+        { id: "HPC-19", title: "Documentation and runbook", assignee: "elinoye", status: "Not Started", field: "HPC", hours: 12, group: "Activation", milestone: true, url: "https://github.com/zakarel/t.io-priv/issues/38" },
+        { id: "ML-0", title: "Architecture finalized", assignee: "mohammadzaid308", status: "Done", field: "ML", hours: 16, group: "Foundation", milestone: true, url: "https://github.com/zakarel/t.io-priv/issues/6" },
+        { id: "ML-0b", title: "ML Tasks scoped", assignee: "elinoye", status: "Done", field: "ML", hours: 10, group: "Foundation", url: "https://github.com/zakarel/t.io-priv/issues/41" },
+        { id: "ML-1", title: "Secondary Azure ML workspace", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Training", url: "https://github.com/zakarel/t.io-priv/issues/42" },
+        { id: "ML-2", title: "Validate compute launch in secondary", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Training", url: "https://github.com/zakarel/t.io-priv/issues/43" },
+        { id: "ML-3", title: "Verify storage access (PUMA/research)", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Training", url: "https://github.com/zakarel/t.io-priv/issues/44" },
+        { id: "ML-4", title: "Validate ACR image pull", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Training", url: "https://github.com/zakarel/t.io-priv/issues/45" },
+        { id: "ML-5", title: "Fallback pipeline to secondary AKS", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Inference", url: "https://github.com/zakarel/t.io-priv/issues/46" },
+        { id: "ML-6", title: "Secondary inference runtime config", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Inference", url: "https://github.com/zakarel/t.io-priv/issues/47" },
+        { id: "ML-7", title: "Validate fallback on secondary AKS", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Inference", url: "https://github.com/zakarel/t.io-priv/issues/48" },
+        { id: "ML-8", title: "Training fallback monitoring", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Observability", url: "https://github.com/zakarel/t.io-priv/issues/49" },
+        { id: "ML-9", title: "Inference fallback monitoring", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Observability", url: "https://github.com/zakarel/t.io-priv/issues/50" },
+        { id: "ML-10", title: "Training fallback runbook", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Runbooks", url: "https://github.com/zakarel/t.io-priv/issues/51" },
+        { id: "ML-11", title: "Inference fallback runbook", assignee: "elinoye", status: "Not Started", field: "ML", hours: 10, group: "Runbooks", milestone: true, url: "https://github.com/zakarel/t.io-priv/issues/52" }
+    ]
+};
+
+function addWorkingDays(startDate, hours, hoursPerWeek) {
+    if (hours <= 0 || hoursPerWeek <= 0) return new Date(startDate);
+    var weeks = hours / hoursPerWeek;
+    var days = Math.ceil(weeks * 7);
+    var result = new Date(startDate);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+
+function calculateTimelines() {
+    var assumptions = PROJECT_DATA.assumptions;
+    var start = new Date(assumptions.projectStart);
+    var tasks = PROJECT_DATA.tasks;
+    var hoursPerWeek = assumptions.hoursPerWeek;
+    var split = assumptions.elinoyeSplit;
+
+    // WAT: sequential, zakarel
+    var watCursor = new Date(start);
+    var watTasks = tasks.filter(function(t) { return t.field === "WAT"; });
+    watTasks.forEach(function(t) {
+        if (t.status === "Done") {
+            t._start = new Date(start);
+            t._start.setDate(t._start.getDate() - 14);
+            t._end = new Date(start);
+        } else {
+            t._start = new Date(watCursor);
+            t._end = addWorkingDays(watCursor, t.hours, hoursPerWeek.zakarel);
+            watCursor = new Date(t._end);
+        }
+    });
+
+    // HPC: sequential, elinoye with split
+    var hpcHpw = hoursPerWeek.elinoye * split.HPC;
+    var hpcCursor = new Date(start);
+    var hpcTasks = tasks.filter(function(t) { return t.field === "HPC"; });
+    hpcTasks.forEach(function(t) {
+        if (t.status === "Done") {
+            t._start = new Date(start);
+            t._start.setDate(t._start.getDate() - 14);
+            t._end = new Date(start);
+        } else {
+            t._start = new Date(hpcCursor);
+            t._end = addWorkingDays(hpcCursor, t.hours, hpcHpw);
+            hpcCursor = new Date(t._end);
+        }
+    });
+
+    // ML: sequential, elinoye with split
+    var mlHpw = hoursPerWeek.elinoye * split.ML;
+    var mlCursor = new Date(start);
+    var mlTasks = tasks.filter(function(t) { return t.field === "ML"; });
+    mlTasks.forEach(function(t) {
+        if (t.status === "Done") {
+            t._start = new Date(start);
+            t._start.setDate(t._start.getDate() - 14);
+            t._end = new Date(start);
+        } else {
+            t._start = new Date(mlCursor);
+            t._end = addWorkingDays(mlCursor, t.hours, mlHpw);
+            mlCursor = new Date(t._end);
+        }
+    });
+
+    return {
+        watEnd: watTasks.length ? watTasks[watTasks.length - 1]._end : start,
+        hpcEnd: hpcTasks.length ? hpcTasks[hpcTasks.length - 1]._end : start,
+        mlEnd: mlTasks.length ? mlTasks[mlTasks.length - 1]._end : start
+    };
+}
+
+function formatDate(d) {
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatShort(d) {
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatMonthYr(d) {
+    var m = d.toLocaleDateString("en-US", { month: "short" });
+    var y = d.getFullYear();
+    return m + " '" + String(y).slice(2);
+}
+
+function getStatusClass(status) {
+    if (status === "Done") return "done";
+    if (status === "In Progress") return "in-progress";
+    if (status === "Blocked") return "blocked";
+    return "not-started";
+}
+
+function renderGantt(containerId, fieldTasks, color, endDate) {
+    var container = document.getElementById(containerId);
+    var allTasks = fieldTasks.filter(function(t) { return t._start && t._end; });
+    if (!allTasks.length) { container.innerHTML = "<p>No tasks</p>"; return; }
+
+    var projStart = new Date(PROJECT_DATA.assumptions.projectStart);
+    var timeStart = new Date(projStart);
+    timeStart.setDate(timeStart.getDate() - 14);
+    var timeEnd = new Date(endDate);
+    timeEnd.setDate(timeEnd.getDate() + 7);
+    var totalMs = timeEnd - timeStart;
+
+    var today = new Date();
+    var todayPct = Math.max(0, Math.min(100, ((today - timeStart) / totalMs) * 100));
+
+    // Months
+    var months = [];
+    var cursor = new Date(timeStart.getFullYear(), timeStart.getMonth(), 1);
+    while (cursor < timeEnd) {
+        var monthStart = new Date(Math.max(cursor.getTime(), timeStart.getTime()));
+        var nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+        var monthEnd = new Date(Math.min(nextMonth.getTime(), timeEnd.getTime()));
+        var startPct = ((monthStart - timeStart) / totalMs) * 100;
+        var widthPct = ((monthEnd - monthStart) / totalMs) * 100;
+        months.push({ label: formatMonthYr(cursor), startPct: startPct, widthPct: widthPct });
+        cursor = nextMonth;
+    }
+
+    // Stats
+    var totalHours = allTasks.reduce(function(s, t) { return s + t.hours; }, 0);
+    var doneHours = allTasks.filter(function(t) { return t.status === "Done"; }).reduce(function(s, t) { return s + t.hours; }, 0);
+    var donePct = Math.round((doneHours / totalHours) * 100);
+
+    var html = "";
+    html += '<div class="gantt-meta">';
+    html += "<span><strong>" + allTasks.length + "</strong> tasks</span>";
+    html += "<span><strong>" + totalHours + "</strong> hrs total</span>";
+    html += "<span><strong>" + donePct + "%</strong> complete</span>";
+    html += "<span>Projected end: <strong>" + formatDate(endDate) + "</strong></span>";
+    html += "</div>";
+
+    // Month headers
+    html += '<div class="gantt-months-row">';
+    months.forEach(function(m) {
+        html += '<span class="gantt-month-label" style="left:' + m.startPct + '%;width:' + m.widthPct + '%">' + m.label + '</span>';
+    });
+    html += "</div>";
+
+    // Body
+    html += '<div class="gantt-body">';
+    // Today line
+    html += '<div class="gantt-today" style="left:calc(220px + ' + todayPct + '%)">';
+    html += '<span class="gantt-today-label">Today</span></div>';
+
+    allTasks.forEach(function(t) {
+        var startPct = Math.max(0, ((t._start - timeStart) / totalMs) * 100);
+        var endPct = Math.max(0, ((t._end - timeStart) / totalMs) * 100);
+        var widthPct = Math.max(0.5, endPct - startPct);
+        var barColor = t.status === "Done" ? "var(--green)" : (t.status === "In Progress" ? "var(--yellow)" : color);
+        var textColor = t.status === "In Progress" ? "#1a2033" : "#fff";
+        var opacity = t.status === "Not Started" ? "0.75" : "1";
+        var label = widthPct > 5 ? (t.hours + "h") : "";
+        var prefix = t.milestone ? "* " : "";
+
+        html += '<div class="gantt-row">';
+        html += '<div class="gantt-row-label" title="' + t.title + '">' + prefix + t.title + '</div>';
+        html += '<div class="gantt-row-bars">';
+        html += '<div class="gantt-bar" data-task-id="' + t.id + '" style="left:' + startPct + '%;width:' + widthPct + '%;background:' + barColor + ';color:' + textColor + ';opacity:' + opacity + '">' + label + '</div>';
+        html += "</div></div>";
+    });
+
+    html += "</div>";
+
+    // Legend
+    html += '<div class="gantt-legend">';
+    html += '<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:var(--green)"></div> Done</div>';
+    html += '<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:var(--yellow)"></div> In Progress</div>';
+    html += '<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:' + color + ';opacity:0.75"></div> Projected</div>';
+    html += '<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:var(--red);width:3px;border-radius:1px"></div> Today</div>';
+    html += "</div>";
+
+    container.innerHTML = html;
+}
+
+function renderTable(tasks) {
+    var tbody = document.getElementById("taskTableBody");
+    var html = "";
+    tasks.forEach(function(t) {
+        html += "<tr>";
+        html += '<td><span class="badge badge-' + t.field.toLowerCase() + '">' + t.field + "</span></td>";
+        html += "<td>" + t.title + "</td>";
+        html += "<td>" + t.assignee + "</td>";
+        html += '<td><span class="status-chip ' + getStatusClass(t.status) + '"><span class="status-dot"></span>' + t.status + "</span></td>";
+        html += '<td style="font-variant-numeric:tabular-nums;color:var(--text-muted)">' + t.hours + "h</td>";
+        html += '<td style="color:var(--text-muted);font-size:0.78rem">' + (t._start ? formatShort(t._start) : "-") + "</td>";
+        html += '<td style="color:var(--text-muted);font-size:0.78rem">' + (t._end ? formatShort(t._end) : "-") + "</td>";
+        html += "</tr>";
+    });
+    tbody.innerHTML = html;
+}
+
+function render() {
+    var tasks = PROJECT_DATA.tasks;
+    var timelines = calculateTimelines();
+    var overallEnd = new Date(Math.max(timelines.watEnd, timelines.hpcEnd, timelines.mlEnd));
+
+    var total = tasks.length;
+    var done = tasks.filter(function(t) { return t.status === "Done"; }).length;
+    var inProgress = tasks.filter(function(t) { return t.status === "In Progress"; }).length;
+    var blocked = tasks.filter(function(t) { return t.status === "Blocked"; }).length;
+    var totalHours = tasks.reduce(function(s, t) { return s + t.hours; }, 0);
+    var doneHours = tasks.filter(function(t) { return t.status === "Done"; }).reduce(function(s, t) { return s + t.hours; }, 0);
+    var pctComplete = Math.round((doneHours / totalHours) * 100);
+
+    document.getElementById("lastUpdated").textContent = PROJECT_DATA.lastUpdated;
+    document.getElementById("overallBadge").textContent = "Project ends: " + formatDate(overallEnd);
+
+    // Completion banner
+    var watRemaining = tasks.filter(function(t) { return t.field === "WAT" && t.status !== "Done"; }).reduce(function(s,t) { return s + t.hours; }, 0);
+    var hpcRemaining = tasks.filter(function(t) { return t.field === "HPC" && t.status !== "Done"; }).reduce(function(s,t) { return s + t.hours; }, 0);
+    var mlRemaining = tasks.filter(function(t) { return t.field === "ML" && t.status !== "Done"; }).reduce(function(s,t) { return s + t.hours; }, 0);
+
+    document.getElementById("completionBanner").innerHTML =
+        '<div class="completion-item wat">' +
+            '<div class="completion-item-label">WAT - Web App Tier</div>' +
+            '<div class="completion-item-date">' + formatDate(timelines.watEnd) + '</div>' +
+            '<div class="completion-item-sub">' + watRemaining + ' hrs remaining</div>' +
+        '</div>' +
+        '<div class="completion-item hpc">' +
+            '<div class="completion-item-label">HPC - High-Performance Compute</div>' +
+            '<div class="completion-item-date">' + formatDate(timelines.hpcEnd) + '</div>' +
+            '<div class="completion-item-sub">' + hpcRemaining + ' hrs remaining</div>' +
+        '</div>' +
+        '<div class="completion-item ml">' +
+            '<div class="completion-item-label">ML - Machine Learning</div>' +
+            '<div class="completion-item-date">' + formatDate(timelines.mlEnd) + '</div>' +
+            '<div class="completion-item-sub">' + mlRemaining + ' hrs remaining</div>' +
+        '</div>';
+
+    // KPI
+    document.getElementById("kpiGrid").innerHTML =
+        '<div class="kpi-card total"><div class="kpi-label">Total Tasks</div><div class="kpi-value">' + total + '</div><div class="kpi-sub">' + pctComplete + '% hours complete</div></div>' +
+        '<div class="kpi-card done"><div class="kpi-label">Completed</div><div class="kpi-value">' + done + '</div><div class="kpi-sub">' + doneHours + ' hrs delivered</div></div>' +
+        '<div class="kpi-card progress"><div class="kpi-label">In Progress</div><div class="kpi-value">' + inProgress + '</div><div class="kpi-sub">' + (total - done - inProgress - blocked) + ' not started</div></div>' +
+        '<div class="kpi-card blocked"><div class="kpi-label">Blocked</div><div class="kpi-value">' + blocked + '</div><div class="kpi-sub">Needs attention</div></div>' +
+        '<div class="kpi-card hours"><div class="kpi-label">Hours Remaining</div><div class="kpi-value">' + (totalHours - doneHours) + '</div><div class="kpi-sub">of ' + totalHours + ' total</div></div>';
+
+    // Assumptions
+    var a = PROJECT_DATA.assumptions;
+    document.getElementById("assumptionsBox").innerHTML =
+        '<div class="assumptions-title">Planning Assumptions (edit data to adjust projections)</div>' +
+        '<div class="assumptions-list">' +
+            '<span>Start: <strong>' + a.projectStart + '</strong></span>' +
+            '<span>zakarel: <strong>' + a.hoursPerWeek.zakarel + 'h/wk</strong> on WAT</span>' +
+            '<span>elinoye: <strong>' + a.hoursPerWeek.elinoye + 'h/wk</strong> (' + Math.round(a.elinoyeSplit.HPC*100) + '% HPC / ' + Math.round(a.elinoyeSplit.ML*100) + '% ML)</span>' +
+            '<span>Tasks assumed sequential within each stream</span>' +
+        '</div>';
+
+    // Gantts
+    var watTasks = tasks.filter(function(t) { return t.field === "WAT"; });
+    var hpcTasks = tasks.filter(function(t) { return t.field === "HPC"; });
+    var mlTasks = tasks.filter(function(t) { return t.field === "ML"; });
+    renderGantt("ganttWAT", watTasks, "var(--wat-color)", timelines.watEnd);
+    renderGantt("ganttHPC", hpcTasks, "var(--hpc-color)", timelines.hpcEnd);
+    renderGantt("ganttML", mlTasks, "var(--ml-color)", timelines.mlEnd);
+
+    // Filters
+    document.getElementById("tableControls").innerHTML =
+        '<button class="filter-btn active" data-filter="all">All</button>' +
+        '<button class="filter-btn wat" data-filter="WAT">WAT</button>' +
+        '<button class="filter-btn hpc" data-filter="HPC">HPC</button>' +
+        '<button class="filter-btn ml" data-filter="ML">ML</button>' +
+        '<span style="border-left:1px solid var(--border);margin:0 0.5rem"></span>' +
+        '<button class="filter-btn" data-filter="Not Started">Not Started</button>' +
+        '<button class="filter-btn" data-filter="In Progress">In Progress</button>' +
+        '<button class="filter-btn" data-filter="Done">Done</button>';
+
+    renderTable(tasks);
+    attachFilters();
+}
+
+var activeFilters = { stream: "all", status: null };
+
+function attachFilters() {
+    var btns = document.querySelectorAll(".filter-btn");
+    btns.forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            var filter = btn.getAttribute("data-filter");
+            var streams = ["WAT", "HPC", "ML", "all"];
+            var statuses = ["Not Started", "In Progress", "Blocked", "Done"];
+
+            if (streams.indexOf(filter) !== -1) {
+                btns.forEach(function(b) { if (streams.indexOf(b.getAttribute("data-filter")) !== -1) b.classList.remove("active"); });
+                btn.classList.add("active");
+                activeFilters.stream = filter;
+            } else {
+                if (btn.classList.contains("active")) {
+                    btn.classList.remove("active");
+                    activeFilters.status = null;
+                } else {
+                    btns.forEach(function(b) { if (statuses.indexOf(b.getAttribute("data-filter")) !== -1) b.classList.remove("active"); });
+                    btn.classList.add("active");
+                    activeFilters.status = filter;
+                }
+            }
+
+            var filtered = PROJECT_DATA.tasks;
+            if (activeFilters.stream !== "all") filtered = filtered.filter(function(t) { return t.field === activeFilters.stream; });
+            if (activeFilters.status) filtered = filtered.filter(function(t) { return t.status === activeFilters.status; });
+            renderTable(filtered);
+        });
+    });
+}
+
+// Sort
+document.querySelector(".task-table thead").addEventListener("click", function(e) {
+    var th = e.target.closest("th");
+    if (!th || !th.getAttribute("data-sort")) return;
+    var key = th.getAttribute("data-sort");
+    var sorted = PROJECT_DATA.tasks.slice().sort(function(a, b) {
+        if (key === "hours") return b[key] - a[key];
+        return (a[key] || "").localeCompare(b[key] || "");
+    });
+    renderTable(sorted);
+});
+
+// ==================== NOTIFICATIONS ====================
+var notifications = [];
+
+function updateNotifUI() {
+    var badge = document.getElementById("notifBadge");
+    var list = document.getElementById("notifList");
+
+    if (notifications.length === 0) {
+        badge.classList.add("hidden");
+        list.innerHTML = '<div class="notif-empty">No changes detected yet</div>';
+        return;
+    }
+
+    badge.classList.remove("hidden");
+    badge.textContent = notifications.length;
+
+    var html = "";
+    notifications.forEach(function(n) {
+        html += '<div class="notif-item">';
+        html += '<div class="notif-item-title">' + n.title + '</div>';
+        html += '<div class="notif-item-detail">' + n.detail + '</div>';
+        html += '<div class="notif-item-time">' + n.time + '</div>';
+        html += '</div>';
+    });
+    list.innerHTML = html;
+}
+
+// Toggle dropdown
+document.getElementById("notifBtn").addEventListener("click", function(e) {
+    e.stopPropagation();
+    var dropdown = document.getElementById("notifDropdown");
+    dropdown.classList.toggle("open");
+});
+
+// Close dropdown on outside click
+document.addEventListener("click", function(e) {
+    var dropdown = document.getElementById("notifDropdown");
+    if (!e.target.closest(".notif-wrapper")) {
+        dropdown.classList.remove("open");
+    }
+});
+
+// Clear notifications
+document.getElementById("notifClear").addEventListener("click", function() {
+    notifications = [];
+    updateNotifUI();
+});
+
+// ==================== TSV UPLOAD ====================
+function normalizeStatus(raw) {
+    var s = raw.trim().toLowerCase();
+    if (s === "done") return "Done";
+    if (s === "in progress") return "In Progress";
+    if (s === "blocked") return "Blocked";
+    return "Not Started";
+}
+
+function extractField(raw) {
+    var s = raw.trim().toUpperCase();
+    if (s === "WAT") return "WAT";
+    if (s === "HPC") return "HPC";
+    if (s === "ML") return "ML";
+    return raw.trim();
+}
+
+function matchTaskByTitle(tsvTitle, existingTasks) {
+    // Try to match by looking for key words from existing task titles in the TSV title
+    var tsvLower = tsvTitle.toLowerCase();
+    var bestMatch = null;
+    var bestScore = 0;
+
+    existingTasks.forEach(function(task) {
+        var words = task.title.toLowerCase().split(/\s+/);
+        var matchCount = 0;
+        words.forEach(function(w) {
+            if (w.length > 3 && tsvLower.indexOf(w) !== -1) matchCount++;
+        });
+        var score = matchCount / words.length;
+        if (score > bestScore && score > 0.4) {
+            bestScore = score;
+            bestMatch = task;
+        }
+    });
+    return bestMatch;
+}
+
+function matchTaskByUrl(url, existingTasks) {
+    var matched = null;
+    existingTasks.forEach(function(task) {
+        if (task.url && task.url === url) matched = task;
+    });
+    return matched;
+}
+
+function parseTSV(text) {
+    var lines = text.trim().split("\n");
+    if (lines.length < 2) return [];
+
+    var headers = lines[0].split("\t").map(function(h) { return h.trim().toLowerCase(); });
+    var titleIdx = -1, urlIdx = -1, assigneeIdx = -1, statusIdx = -1, fieldIdx = -1, hoursIdx = -1;
+
+    headers.forEach(function(h, i) {
+        if (h === "title") titleIdx = i;
+        if (h === "url") urlIdx = i;
+        if (h.indexOf("assignee") !== -1) assigneeIdx = i;
+        if (h === "status") statusIdx = i;
+        if (h === "field") fieldIdx = i;
+        if (h.indexOf("estimated") !== -1 || h.indexOf("time") !== -1 || h.indexOf("hour") !== -1) hoursIdx = i;
+    });
+
+    var rows = [];
+    for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split("\t");
+        if (cols.length < 3) continue;
+        rows.push({
+            title: titleIdx >= 0 ? cols[titleIdx].trim() : "",
+            url: urlIdx >= 0 ? cols[urlIdx].trim() : "",
+            assignee: assigneeIdx >= 0 ? cols[assigneeIdx].trim() : "",
+            status: statusIdx >= 0 ? cols[statusIdx].trim() : "",
+            field: fieldIdx >= 0 ? cols[fieldIdx].trim() : "",
+            hours: hoursIdx >= 0 ? parseInt(cols[hoursIdx]) || 0 : 0
+        });
+    }
+    return rows;
+}
+
+function processUpload(tsvRows) {
+    var changes = [];
+    var tasks = PROJECT_DATA.tasks;
+    var now = new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+    tsvRows.forEach(function(row) {
+        // Try to match by URL first, then by title
+        var matched = null;
+        if (row.url) {
+            tasks.forEach(function(existing) {
+                if (existing.url && existing.url === row.url) matched = existing;
+            });
+        }
+        if (!matched) {
+            matched = matchTaskByTitle(row.title, tasks);
+        }
+
+        if (matched) {
+            // Check for changes
+            var newStatus = normalizeStatus(row.status);
+            if (newStatus !== matched.status) {
+                changes.push({
+                    title: matched.title,
+                    detail: 'Status: <span class="change-status">' + matched.status + ' &rarr; ' + newStatus + '</span>',
+                    time: now
+                });
+                matched.status = newStatus;
+            }
+            if (row.hours && row.hours !== matched.hours) {
+                changes.push({
+                    title: matched.title,
+                    detail: 'Hours: <span class="change-hours">' + matched.hours + 'h &rarr; ' + row.hours + 'h</span>',
+                    time: now
+                });
+                matched.hours = row.hours;
+            }
+            if (row.assignee && row.assignee !== matched.assignee) {
+                changes.push({
+                    title: matched.title,
+                    detail: 'Assignee: ' + matched.assignee + ' &rarr; ' + row.assignee,
+                    time: now
+                });
+                matched.assignee = row.assignee;
+            }
+        } else {
+            // New task - add it
+            var newField = extractField(row.field);
+            var newTask = {
+                id: newField + "-new-" + Date.now(),
+                title: row.title.replace(/^\[.*?\]\s*/, ""),
+                assignee: row.assignee || "unassigned",
+                status: normalizeStatus(row.status),
+                field: newField,
+                hours: row.hours || 0,
+                group: "Imported"
+            };
+            tasks.push(newTask);
+            changes.push({
+                title: newTask.title,
+                detail: '<span class="change-new">New task added</span> (' + newField + ', ' + newTask.hours + 'h)',
+                time: now
+            });
+        }
+    });
+
+    if (changes.length > 0) {
+        notifications = changes.concat(notifications);
+        PROJECT_DATA.lastUpdated = new Date().toISOString().split("T")[0];
+        updateNotifUI();
+        render();
+        // Auto-open the notification dropdown
+        document.getElementById("notifDropdown").classList.add("open");
+    } else {
+        notifications.unshift({
+            title: "No changes detected",
+            detail: "The uploaded TSV matches the current data",
+            time: now
+        });
+        updateNotifUI();
+        document.getElementById("notifDropdown").classList.add("open");
+    }
+}
+
+document.getElementById("tsvFileInput").addEventListener("change", function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+        var text = evt.target.result;
+        var rows = parseTSV(text);
+        if (rows.length > 0) {
+            processUpload(rows);
+        } else {
+            alert("Could not parse the TSV file. Please check the format.");
+        }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be uploaded again
+    e.target.value = "";
+});
+
+// ==================== TASK DETAIL MODAL ====================
+function openTaskModal(taskId) {
+    var task = null;
+    PROJECT_DATA.tasks.forEach(function(t) { if (t.id === taskId) task = t; });
+    if (!task) return;
+
+    var modal = document.getElementById("taskModal");
+    var badgeClass = "badge-" + task.field.toLowerCase();
+    document.getElementById("modalBadge").innerHTML = '<span class="badge ' + badgeClass + '">' + task.field + '</span>';
+    document.getElementById("modalTitle").textContent = task.title;
+
+    var statusClass = getStatusClass(task.status);
+    var startStr = task._start ? formatDate(task._start) : "TBD";
+    var endStr = task._end ? formatDate(task._end) : "TBD";
+
+    var grid = "";
+    grid += '<div class="modal-field"><div class="modal-field-label">Status</div><div class="modal-field-value"><span class="status-chip ' + statusClass + '"><span class="status-dot"></span>' + task.status + '</span></div></div>';
+    grid += '<div class="modal-field"><div class="modal-field-label">Assignee</div><div class="modal-field-value">' + task.assignee + '</div></div>';
+    grid += '<div class="modal-divider"></div>';
+    grid += '<div class="modal-field"><div class="modal-field-label">Projected Start</div><div class="modal-field-value">' + startStr + '</div></div>';
+    grid += '<div class="modal-field"><div class="modal-field-label">Projected End</div><div class="modal-field-value highlight">' + endStr + '</div></div>';
+    grid += '<div class="modal-divider"></div>';
+    grid += '<div class="modal-field"><div class="modal-field-label">Estimated Hours</div><div class="modal-field-value">' + task.hours + 'h</div></div>';
+    if (task.phase !== undefined) {
+        grid += '<div class="modal-field"><div class="modal-field-label">Phase</div><div class="modal-field-value">Phase ' + task.phase + '</div></div>';
+    } else if (task.group) {
+        grid += '<div class="modal-field"><div class="modal-field-label">Category</div><div class="modal-field-value">' + task.group + '</div></div>';
+    }
+
+    document.getElementById("modalGrid").innerHTML = grid;
+
+    // URL link
+    if (task.url) {
+        document.getElementById("modalUrl").innerHTML = '<a href="' + task.url + '" target="_blank">View on GitHub &rarr;</a>';
+    } else {
+        document.getElementById("modalUrl").innerHTML = "";
+    }
+
+    modal.classList.add("open");
+}
+
+function closeTaskModal() {
+    document.getElementById("taskModal").classList.remove("open");
+}
+
+document.getElementById("modalClose").addEventListener("click", closeTaskModal);
+document.getElementById("taskModal").addEventListener("click", function(e) {
+    if (e.target === this) closeTaskModal();
+});
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") closeTaskModal();
+});
+
+// Delegate clicks on gantt bars
+document.addEventListener("click", function(e) {
+    var bar = e.target.closest(".gantt-bar");
+    if (bar && bar.getAttribute("data-task-id")) {
+        openTaskModal(bar.getAttribute("data-task-id"));
+    }
+});
+
+render();
+</script>
+</body>
+</html>
