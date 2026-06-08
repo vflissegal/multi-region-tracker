@@ -49,6 +49,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         .header-left { display: flex; align-items: center; gap: 1rem; }
+        .last-updated { font-size: 0.75rem; color: var(--text-muted); background: var(--surface-2); padding: 0.2rem 0.6rem; border-radius: 4px; white-space: nowrap; }
         .logo {
             width: 42px; height: 42px;
             background: linear-gradient(135deg, var(--accent), #7c3aed);
@@ -276,6 +277,7 @@
         <div class="header-left">
             <div class="logo">T</div>
             <h1>Multi-Region Expansion <span>Tomorrow.io</span></h1>
+            <span class="last-updated" id="lastUpdated"></span>
         </div>
         <div class="header-right">
             <label class="upload-btn" for="tsvFileInput">
@@ -607,6 +609,10 @@ function renderTable(tasks) {
 }
 
 function render() {
+    // Set last-updated timestamp
+    var now = new Date();
+    document.getElementById("lastUpdated").textContent = "Last updated: " + now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + " " + now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+
     var tasks = PROJECT_DATA.tasks;
     var timelines = calculateTimelines();
     var overallEnd = new Date(Math.max(timelines.watEnd, timelines.hpcEnd, timelines.mlEnd));
