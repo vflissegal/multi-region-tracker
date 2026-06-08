@@ -214,15 +214,19 @@
         }
         .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
         .upload-btn svg { width: 16px; height: 16px; }
-        .upload-wrapper { position: relative; }
+        .upload-wrapper { position: relative; display: inline-block; }
         .upload-tooltip {
-            display: none; position: absolute; top: calc(100% + 8px); right: 0; z-index: 1000;
+            visibility: hidden; opacity: 0; position: absolute; top: calc(100% + 8px); right: 0; z-index: 9999;
             width: 320px; padding: 0.9rem 1rem; border-radius: 10px;
             background: var(--surface); border: 1px solid var(--border);
             box-shadow: 0 8px 24px rgba(0,0,0,0.12); font-size: 0.78rem; color: var(--text);
-            line-height: 1.5;
+            line-height: 1.5; transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
         }
-        .upload-wrapper:hover .upload-tooltip { display: block; }
+        .upload-tooltip::before {
+            content: ""; position: absolute; top: -10px; left: 0; right: 0; height: 10px;
+        }
+        .upload-wrapper:hover .upload-tooltip { visibility: visible; opacity: 1; pointer-events: auto; }
         .upload-tooltip h4 { margin: 0 0 0.4rem; font-size: 0.82rem; color: var(--accent); }
         .upload-tooltip ol { margin: 0.4rem 0; padding-left: 1.2rem; }
         .upload-tooltip li { margin-bottom: 0.3rem; }
